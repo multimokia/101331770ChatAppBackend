@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url = env("DATABASE_URL")
+}
+
+model User {
+    id Int @id @default(autoincrement())
+    createdDate DateTime @default(now())
+    email String @unique
+    username String
+    password String
+    avatarB64 String @db.LongText
+    channels Channel[]
+    messages Message[]
+    channelMemberProps ChannelUserAdditionalProps[]
+}
+
+model ChannelUserAdditionalProps {
+    id Int @id @default(autoincrement())
+    nickname String
+
+    userId Int
+    user User @relation(fields: [userId], references: [id])
+
+    channelId Int
+    channel Channel @relation(fields: [channelId], references: [id])
+}
+
+model Channel {
+    id Int @id @default(autoincrement())
+    name String
+
+    invites Invite[]
+    members User[]
+    messages Message[]
+    channelMemberProps ChannelUserAdditionalProps[]
+}
+
+model Message {
+    id Int @id @default(autoincrement())
+    content String
+    isEdited Boolean
+    timeSent DateTime
+
+    authorId Int
+    author User @relation(fields: [authorId], references: [id])
+
+    channelId Int
+    channel Channel @relation(fields: [channelId], references: [id])
+}
+
+model Invite {
+    id Int @id @default(autoincrement())
+    uuid String @unique
+    expiry DateTime? @default(now())
+    usesRemaining Int?
+
+    channelId Int
+    channel Channel @relation(fields: [channelId], references: [id])
+}

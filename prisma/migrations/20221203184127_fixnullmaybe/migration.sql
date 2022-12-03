@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Invite` MODIFY `expiry` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
+    MODIFY `usesRemaining` INTEGER NULL;
