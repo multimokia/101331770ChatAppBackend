@@ -62,6 +62,24 @@ io.on("connection", (socket) => {
                 console.error(err);
             });
     });
+
+    socket.on("userConnected", (userId) => {
+        prisma.user.findUniqueOrThrow({ where: { id: userId }})
+            .then((user) => {
+                console.log(`User ${user.username} is online.`);
+            });
+
+        socket.emit("serverBroadcastsUserConnected", userId);
+    });
+
+    socket.on("userDisconnected", (userId) => {
+        prisma.user.findUniqueOrThrow({ where: { id: userId }})
+            .then((user) => {
+                console.log(`User ${user.username} is offline.`);
+            });
+
+        socket.emit("serverBroadcastsUserDisconnected", userId);
+    });
 });
 
 httpServer.listen(9999, () => console.log("Server listening on port 9999"));
