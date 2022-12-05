@@ -24,6 +24,7 @@ io.on("connection", (socket) => {
             .then((channel) => {
                 console.log(`User ${user.username} joined ${channel.name}`);
                 socket.join(channel.id.toString());
+                socket.to(channel.id.toString()).emit("serverBroadcastsUserJoin", user, channel);
             })
             .catch((err) => {
                 console.error(err);
@@ -44,6 +45,18 @@ io.on("connection", (socket) => {
             .then((savedMessage) => {
                 io.to(message.channelId.toString()).emit("serverBroadcastsUserSentMessage", savedMessage);
                 console.log(`[${savedMessage.author.username} @ ${savedMessage.channel.name}]: ${savedMessage.content}`);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    });
+
+    socket.on("userLeft", (user, channelId) => {
+        prisma.channel.findUniqueOrThrow({ where: { id: channelId }})
+            .then((channel) => {
+                console.log(`User ${user.username} left ${channel.name}`);
+                socket.leave(channel.id.toString());
+                socket.to(channel.id.toString()).emit("serverBroadcastsUserLeave", user, channel);
             })
             .catch((err) => {
                 console.error(err);
