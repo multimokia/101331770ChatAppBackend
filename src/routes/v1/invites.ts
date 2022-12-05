@@ -60,27 +60,27 @@ inviteRouter.route("/:uuid")
                 return res.status(404).send({ error: "Invalid invite url" });
             }
 
-            // NOTE: We make an assumption that the uses remaining can never be 0 as an invite is deleted from the table
-            // As soon as it is our of uses. Therefore the following condition serves as a nullcheck ONLY
-            if (invite.usesRemaining) {
-                if (invite.usesRemaining - 1 > 0) {
-                    await prisma.invite.update({
-                        where: {id: invite.id },
-                        data: { usesRemaining: invite.usesRemaining - 1 }
-                    });
-                }
-
-                else {
-                    await prisma.invite.delete({ where: { id: invite.id } });
-                    return res.status(410).send({ error: "Invite link expired. "});
-                }
-            }
-
             // Validate times
             if (invite.expiry && invite.expiry < new Date()) {
                 // Delete the invite
                 await prisma.invite.delete({ where: { id: invite.id } });
                 return res.status(410).send({ error: "Invite link expired." });
+            }
+
+            // NOTE: We make an assumption that the uses remaining can never be 0 as an invite is deleted from the table
+            // As soon as it is our of uses. Therefore the following condition serves as a nullcheck ONLY
+            if (invite.usesRemaining) {
+                if (invite.usesRemaining - 1 === 0) {
+                    await prisma.invite.delete({ where: { id: invite.id } });
+                    return res.status(410).send({ error: "Invite link expired. "});
+                }
+
+                else {
+                    await prisma.invite.update({
+                        where: {id: invite.id },
+                        data: { usesRemaining: invite.usesRemaining - 1 }
+                    });
+                }
             }
 
             // Add the user to the channel
